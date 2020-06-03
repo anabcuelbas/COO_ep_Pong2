@@ -2,6 +2,8 @@ import java.awt.Color;
 import java.lang.reflect.*;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Random;
+import java.util.Iterator;
 
 /**
 	Classe que gerencia uma ou mais bolas presentes em uma partida. Esta classe é a responsável por instanciar 
@@ -14,8 +16,11 @@ public class BallManager {
 	private double initSpeed;
 	private long startBoost;
 	private long endBoost;
+	private int index;
 	private List<IBall> ballsList = new LinkedList<IBall>();
 	private List<Long> boostList = new LinkedList<Long>();
+	private List<Long> createTimeList = new LinkedList<Long>();
+	private Random random = new Random(System.currentTimeMillis());
 
 	/**
 		Atributo privado que representa a bola principal do jogo.	
@@ -150,7 +155,18 @@ public class BallManager {
         	if(endBoost - boostList.get(ballsList.indexOf(ball)) >= BoostTarget.BOOST_DURATION) {
 				ball.setSpeed(initSpeed);
 			}
-        }
+		}
+
+		index = 0;
+
+		for(Iterator<Long> it = createTimeList.iterator(); it.hasNext(); ) {
+            if((endBoost - it.next()) >= DuplicatorTarget.EXTRA_BALL_DURATION){
+				it.remove();
+				ballsList.remove(index);
+			 	boostList.remove(index);
+            }
+			index++;
+		}
 	}
 	
 	/**
@@ -208,11 +224,14 @@ public class BallManager {
 				}
 
 			} else if(target instanceof DuplicatorTarget) {
-				IBall newBall = createBallInstance(theBall.getCx(), theBall.getCy(), theBall.getWidth(), theBall.getHeight(), Color.RED, initSpeed, theBall.getVx(), theBall.getVy());
+				IBall newBall = createBallInstance(theBall.getCx(), theBall.getCy(), theBall.getWidth(), theBall.getHeight(), Color.RED, initSpeed, random.nextInt(), random.nextInt());
 				ballsList.add(newBall);
 
 				Long newTime = Long.valueOf(0);
 				boostList.add(newTime);
+
+				Long initTime = System.currentTimeMillis();
+				createTimeList.add(initTime);
 			}
 		}
 
@@ -224,7 +243,6 @@ public class BallManager {
 						ball.setSpeed(newSpeed);
 						boostList.set(ballsList.indexOf(ball), System.currentTimeMillis());
 					}
-	
 				}
 			}
         }
