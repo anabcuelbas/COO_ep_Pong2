@@ -19,7 +19,8 @@ public class BallManager {
 	private int index;
 	private List<IBall> ballsList = new LinkedList<IBall>();
 	private List<Long> boostList = new LinkedList<Long>();
-	private List<Long> createTimeList = new LinkedList<Long>();
+	private List<Long> creationTime = new LinkedList<Long>();
+	private List<IBall> auxDuplicator = new LinkedList<IBall>();
 	private Random random = new Random(System.currentTimeMillis());
 
 	/**
@@ -159,7 +160,7 @@ public class BallManager {
 
 		index = 0;
 
-		for(Iterator<Long> it = createTimeList.iterator(); it.hasNext(); ) {
+		for(Iterator<Long> it = creationTime.iterator(); it.hasNext();) {
             if((endBoost - it.next()) >= DuplicatorTarget.EXTRA_BALL_DURATION){
 				it.remove();
 				ballsList.remove(index);
@@ -231,11 +232,11 @@ public class BallManager {
 				boostList.add(newTime);
 
 				Long initTime = System.currentTimeMillis();
-				createTimeList.add(initTime);
+				creationTime.add(initTime);
 			}
 		}
 
-		for(IBall ball : ballsList){
+		for(IBall ball : ballsList) {
             if(ball.checkCollision(target)) {
 				if(target instanceof BoostTarget) {
 					if(ball.getSpeed() <= initSpeed) {
@@ -244,8 +245,22 @@ public class BallManager {
 						boostList.set(ballsList.indexOf(ball), System.currentTimeMillis());
 					}
 				}
+
+				if(target instanceof DuplicatorTarget) {
+					IBall newBall = createBallInstance(target.getCx(), target.getCy(), theBall.getWidth(), theBall.getHeight(), Color.RED, initSpeed, random.nextInt(), random.nextInt());
+					auxDuplicator.add(newBall);
+
+					Long newTime = Long.valueOf(0);
+					boostList.add(newTime);
+
+					Long initTime = System.currentTimeMillis();
+					creationTime.add(initTime);
+				}
 			}
-        }
+		}
+
+		ballsList.addAll(auxDuplicator);
+		auxDuplicator.clear();
 	}
 }
 
